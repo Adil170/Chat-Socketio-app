@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+</head>
+<body>
+    <h1>User Login</h1>
+    <input id="username" placeholder="Enter your username">
+    <button onclick="login()">Login</button>
+
+    <div id="chat-container" style="display:none;">
+        <input id="user-message" placeholder="Type your message">
+        <button onclick="sendMessage('user')">Send</button>
+    </div>
+
+    <ul id="admin-messages"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let username = '';
+
+        function login() {
+            const usernameInput = document.getElementById('username');
+            username = usernameInput.value.trim();
+
+            if (username !== '') {
+                // Hide login elements and show chat elements
+                document.getElementById('chat-container').style.display = 'block';
+                // Emit a login event to the server
+                socket.emit('login', { username: username });
+            } else {
+                alert('Please enter a valid username.');
+            }
+        }
+
+        function sendMessage(role) {
+            const messageInput = document.getElementById('user-message');
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                // Send the message along with the username to the server
+                socket.emit(`message from ${role}`, { username: username, message: message });
+                messageInput.value = '';
+            }
+        }
+
+        socket.on('message from admin', (message) => {
+            const adminMessages = document.getElementById('admin-messages');
+            const li = document.createElement('li');
+            li.textContent = message;
+            adminMessages.appendChild(li);
+        });
+    </script>
+</body>
+</html>
